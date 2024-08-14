@@ -1,6 +1,6 @@
 import { Location } from "@/domain";
 
-export default function getLocation(successCallback: ({latitude, longitude, altitude}: Location) => void){
+export function getLocation(successCallback: ({latitude, longitude, altitude}: Location) => void){
   if (navigator.geolocation) {
     const timeoutVal = 10 * 1000 * 1000; // set a timeout value for the query
     navigator.geolocation.getCurrentPosition(

@@ -10,8 +10,8 @@ import Metric from "@/components/Metric";
 import { Dashboard } from "@/components/Dashboard";
 import useNoSleep from "@/components/NoSleep";
 
-import { DistanceRally } from "./domain";
-import { distanceRallyUseCases } from "./factory";
+import { WaypointRally, Waypoint } from "./domain";
+import { waypointRallyUseCases } from "./factory";
 
 
 //create your forceUpdate hook
@@ -21,15 +21,15 @@ function useForceUpdate(){
 }
 
 
-const getDefaultTotalDistance = () => 100;
-const getDefaultCheckpointDate = () => new Date(new Date().getTime() + 2*3600*1000);
+const defaultTotalDistance = 100;
+const defaultCheckpointDate = new Date(new Date().getTime() + 2*3600*1000);
 
 
-function DistanceRallyControls({rally, start, pause, clear, updateTotalDistance, updateCheckpointDate}: 
-                               {rally: DistanceRally, start: () => void, pause: () => void, clear: (totalDistance: number, checkpointDate: Date) => void, updateTotalDistance: (distance: number) => void, updateCheckpointDate: (date: Date) => void }){
+function WaypointRallyControls({rally, start, pause, clear, updateTotalDistance, updateCheckpointDate}: 
+                               {rally: WaypointRally, start: () => void, pause: () => void, clear: (checkpointDate: Date) => void, updateTotalDistance: (distance: number) => void, updateCheckpointDate: (date: Date) => void }){
 
-  const [totalDistance, setTotalDistance] = useState<string>(getDefaultTotalDistance().toFixed(0));
-  const [checkpointDate, setCheckpointDate] = useState<dayjs.Dayjs>(dayjs(getDefaultCheckpointDate()));
+  const [totalDistance, setTotalDistance] = useState<string>(defaultTotalDistance.toFixed(0));
+  const [checkpointDate, setCheckpointDate] = useState<dayjs.Dayjs>(dayjs(defaultCheckpointDate));
 
   const totalDistanceChanged = (value: string) => {
     setTotalDistance(value);
@@ -71,36 +71,36 @@ function DistanceRallyControls({rally, start, pause, clear, updateTotalDistance,
 }
 
 
-export default function DistanceRallyView(){
+export default function WaypointRallyView(){
 
   useNoSleep();
   const forceUpdate = useForceUpdate();
 
-  const [rally, setRally] = useState<DistanceRally>(distanceRallyUseCases.createNew(getDefaultCheckpointDate(), getDefaultTotalDistance()));
+  const [rally, setRally] = useState<WaypointRally>(waypointRallyUseCases.createNew(defaultTotalDistance, defaultCheckpointDate));
 
 
   const start = () => {
-    distanceRallyUseCases.startUpdatingRally(rally, (_) => {forceUpdate()});
+    waypointRallyUseCases.startUpdatingRally(rally, (_) => {forceUpdate()});
     forceUpdate();
   }
 
   const pause = () => {
-    distanceRallyUseCases.stopUpdatingRally(rally);
+    waypointRallyUseCases.stopUpdatingRally(rally);
     forceUpdate();
   }
 
-  const clear = (totalDistance: number, checkpointDate: Date) => {
-    const newRally = distanceRallyUseCases.createNew(checkpointDate, totalDistance);
+  const clear = (checkpointDate: Date) => {
+    const newRally = waypointRallyUseCases.createNew(checkpointDate);
     setRally(newRally);
   }
 
   const updateTotalDistance = (totalDistance: number) => {
-    distanceRallyUseCases.updateTotalDistance(rally, totalDistance);
+    waypointRallyUseCases.updateTotalDistance(rally, totalDistance);
     forceUpdate();
   }
 
   const updateCheckpointDate = (checkpointDate: Date) => {
-    distanceRallyUseCases.updateCheckpointDate(rally, checkpointDate);
+    waypointRallyUseCases.updateCheckpointDate(rally, checkpointDate);
     forceUpdate();
   }
 
@@ -110,7 +110,7 @@ export default function DistanceRallyView(){
       <Metric value={rally.calculateRemainingDistance().toFixed(1)} title="Remaining distance" unit="km" />,
       <Metric value={rally.calculatePathAverageVelocity().toFixed(0)} title="Average speed" unit="km/h" />,
       <Metric value={rally.calculateRequiredAverageVelocity().toFixed(0)} title="Required speed" unit="km/h" />,
-    ]} controls={<DistanceRallyControls rally={rally} start={start} pause={pause} clear={clear} updateTotalDistance={updateTotalDistance}  updateCheckpointDate={updateCheckpointDate}/>}/>
+    ]} controls={<WaypointRallyControls rally={rally} start={start} pause={pause} clear={clear} updateTotalDistance={updateTotalDistance}  updateCheckpointDate={updateCheckpointDate}/>}/>
   )
 
 }

@@ -1,4 +1,4 @@
-import { Path } from "../domain";
+import { Path } from "@/domain";
 
 
 export class DistanceRally {
@@ -8,7 +8,7 @@ export class DistanceRally {
   path: Path;
   updating: boolean;
 
-  constructor(reference: string, totalDistance: number, checkpointDate: Date){
+  constructor(reference: string, checkpointDate: Date, totalDistance: number){
     this.reference = reference;
     this.totalDistance = totalDistance;
     this.checkpointDate = checkpointDate;

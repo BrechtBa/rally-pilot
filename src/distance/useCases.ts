@@ -1,5 +1,5 @@
-import getLocation from "../useCases";
-import { Location } from "../domain";
+import { getLocation } from "@/useCases";
+import { Location } from "@/domain";
 import { DistanceRally } from "./domain";
 
 export class DistanceRallyUseCases {
@@ -10,10 +10,10 @@ export class DistanceRallyUseCases {
     this.intervals = new Map([])
   }
 
-  createNew(totalDistance: number, checkpointDate: Date): DistanceRally {
+  createNew(checkpointDate: Date, totalDistance: number): DistanceRally {
     // TODO store in repo
     const reference = crypto.randomUUID();
-    return new DistanceRally(reference, totalDistance, checkpointDate);
+    return new DistanceRally(reference, checkpointDate, totalDistance);
   }
 
   updateTotalDistance(rally: DistanceRally, totalDistance: number): DistanceRally {
