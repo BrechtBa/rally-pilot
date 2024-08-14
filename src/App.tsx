@@ -8,6 +8,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 
 import DistanceRallyView from './distance/view';
 import WaypointRallyView from './waypoint/view';
+import HistoryView from './history/view';
 
 
 function Layout() {
@@ -38,6 +39,10 @@ function Home() {
       <Link to="/waypoint">
         <NavigationCard title="Waypoint rally" description="Determine the distance to go based on a set of waypoints."/>
       </Link>
+
+      <Link to="/history">
+        <NavigationCard title="History" description="Show historical trips."/>
+      </Link>
     </div>
   )
 }
@@ -55,6 +60,7 @@ function App() {
             <Route index element={<Home />} />
             <Route path="distance" element={<DistanceRallyView />} />
             <Route path="waypoint" element={<WaypointRallyView />} />
+            <Route path="history" element={<HistoryView />} />
             <Route path="*" element={<Home />} />
           </Route>
         </Routes>

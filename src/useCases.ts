@@ -1,4 +1,4 @@
-import { Location, BaseRally } from "@/domain";
+import { Location, BaseRally, PathRepository } from "@/domain";
 
 
 export class LocationUsecases {
@@ -77,8 +77,10 @@ export const locationUsecases = new LocationUsecases()
 
 export class BaseRallyUseCases {
   private watchers: Map<string, any>;
+  private pathRepository: PathRepository;
 
-  constructor() {
+  constructor(pathRepository: PathRepository) {
+    this.pathRepository = pathRepository;
     this.watchers = new Map([])
   }
 
@@ -86,7 +88,6 @@ export class BaseRallyUseCases {
     rally.checkpointDate = checkpointDate;
     return rally;
   }
-
 
   startUpdatingRally(rally: BaseRally, updateCallback: (rally: BaseRally) => void): void {
     rally.updating = true;
@@ -96,6 +97,7 @@ export class BaseRallyUseCases {
       rally.path.addPoint({date: now, location: location});
       rally.checkPassedWaypoints();
       updateCallback(rally);
+      this.pathRepository.storePath(rally.reference, rally.path);
     });
     this.watchers.set(rally.reference, id)
   }

@@ -151,3 +151,16 @@ export class BaseRally {
     });
   }
 }
+
+
+export interface StoredPathItem {
+  reference: string;
+  date: Date;
+}
+
+
+export interface PathRepository {
+  storePath(reference: string, path: Path): void;
+  loadPath(reference: string): Path;
+  listPaths(): Array<StoredPathItem>
+}
