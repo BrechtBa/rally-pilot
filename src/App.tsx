@@ -1,5 +1,3 @@
-import { useState } from 'react';
-
 import './App.css'
 
 import { Routes, Route, Outlet, Link } from "react-router-dom";
@@ -20,23 +18,25 @@ function Layout() {
   );
 }
 
+function NavigationCard({title, description}: {title: string, description: string}) {
+  return (
+    <Paper style={{padding: "1em", backgroundColor: "#ddd"}}>
+        <h1>{title}</h1>
+        <p>{description}</p>
+    </Paper>
+  )
+}
 
 function Home() {
 
   return (
     <div style={{display: "flex", flexDirection: "column", gap: "1em", margin: "1em"}}>
       <Link to="/distance">
-        <Paper>
-          <h1>Distance rally</h1>
-          <p>test</p>
-        </Paper>
+        <NavigationCard title="Distance rally" description="Set a fixed distance and compare it to the total traveled distance."/>
       </Link>
       
       <Link to="/waypoint">
-        <Paper>
-          <h1>Waypoint rally</h1>
-          <p>test</p>
-        </Paper>
+        <NavigationCard title="Waypoint rally" description="Determine the distance to go based on a set of waypoints."/>
       </Link>
     </div>
   )
@@ -45,8 +45,6 @@ function Home() {
 
 
 function App() {
-
-  const [page, setPage] = useState<string>("home")
 
   return (
     <>

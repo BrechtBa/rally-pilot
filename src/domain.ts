@@ -11,6 +11,13 @@ export interface GPSPoint {
 }
 
 
+export interface Waypoint{
+  reference: string;
+  location: Location;
+  passed: boolean;
+}
+
+
 export function calculateDistance(lat1: number, lon1: number, alt1: number, lat2: number, lon2: number, alt2: number) {
 
   var R = 6371; // km 

@@ -1,11 +1,6 @@
-import { Path, Location, calculateDistance, calculatePathDistance } from "@/domain";
+import { Path, calculateDistance, calculatePathDistance, Waypoint } from "@/domain";
 
 
-export interface Waypoint {
-  reference: string;
-  location: Location;
-  passed: boolean;
-}
 
 
 export class WaypointRally {
@@ -15,7 +10,7 @@ export class WaypointRally {
   path: Path;
   updating: boolean;
 
-  static checkpointPassedDistance: number = 0.2; // km
+  static checkpointPassedDistance: number = 0.1; // km
 
   constructor(reference: string, waypoints: Array<Waypoint>, checkpointDate: Date){
     this.reference = reference;

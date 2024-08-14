@@ -1,18 +1,83 @@
-import { useState } from 'react';
-import { MapContainer, TileLayer, Polyline} from "react-leaflet"
+import { useMemo, useRef, useState } from 'react';
+import { MapContainer, TileLayer, Polyline, Marker, Popup, useMapEvents} from "react-leaflet"
 import { ScaleControl } from 'react-leaflet/ScaleControl'
-import { Map, LatLng } from "leaflet";
+import { Map, LatLng, Marker as LeafletMarker } from "leaflet";
 
 import "leaflet/dist/leaflet.css"
 import "leaflet-defaulticon-compatibility"
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css"
 
 import MyLocationIcon from '@mui/icons-material/MyLocation';
-import { GPSPoint } from '@/domain';
+import { Waypoint, GPSPoint } from '@/domain';
 
 
-export default function MyMap({path}: {path: Array<GPSPoint>}) {
+function WaypointMarker({waypoint, updateWaypoint, index}: {waypoint: Waypoint, updateWaypoint: (waypoint: Waypoint) => void, index: number}) {
+
+  const markerRef = useRef<LeafletMarker>(null)
+
+  const eventHandlers = useMemo(
+    () => ({
+      dragend() {
+        const marker = markerRef.current
+        if (marker != null) {
+          const latlng = marker.getLatLng()
+          const newWaypoint = {
+            ...waypoint,
+            location: {
+              latitude: latlng.lat,
+              longitude: latlng.lng,
+              altitude: latlng.alt === undefined ? waypoint.location.altitude : latlng.alt
+            },
+          } 
+          updateWaypoint(newWaypoint)
+        }
+      },
+    }),
+    [updateWaypoint],
+  )
+
+  return (
+    <Marker
+      draggable={true}
+      eventHandlers={eventHandlers}
+      position={new LatLng(waypoint.location.latitude, waypoint.location.longitude, waypoint.location.altitude)}
+      ref={markerRef}>
+      <Popup minWidth={90}>
+        <span>Waypoint {index + 1}{waypoint.passed ? ", passed" : ""}</span>
+      </Popup>
+    </Marker>
+  )
+}
+
+function DragDetection({stopFollowing}: {stopFollowing: () => void}) {
+  useMapEvents({
+    dragend: () => {
+      stopFollowing()
+    }
+  });
+  return null;
+}
+
+
+export default function MyMap({path, waypoints, updateWaypoints}: {path: Array<GPSPoint>, waypoints?: Array<Waypoint>, updateWaypoints?: (waypoints: Array<Waypoint>) => void}) {
   const [map, setMap] = useState<Map | null>(null);
+  const [followMe, setFollowMe] = useState<boolean>(true);
+
+
+  const updateWaypoint = (waypoint: Waypoint): void => {
+    if(waypoints === undefined || updateWaypoints === undefined) {
+      return;
+    }
+
+    const newWaypoints = waypoints.map((oldWaypoint) => {
+      if(oldWaypoint.reference === waypoint.reference){
+        return waypoint;
+      }
+      return oldWaypoint;
+    });
+    updateWaypoints(newWaypoints);
+  }
+
 
   const getLatestPosition = (): LatLng => {
     if(path.length === 0){
@@ -28,7 +93,10 @@ export default function MyMap({path}: {path: Array<GPSPoint>}) {
     }
   }
   
-  flyToMyPosition();
+  if( followMe ){
+    flyToMyPosition();
+  }
+
 
   return (
     <div style={{width: "100%", height: "100%"}}>
@@ -48,19 +116,17 @@ export default function MyMap({path}: {path: Array<GPSPoint>}) {
           </div>
         </div>
 
-        {/* <Circle center={myPosition} radius={10}>
-          <Popup>
-            My position
-          </Popup>
-        </Circle> */}
-
         <Polyline pathOptions={{color: 'blue'}} positions={path.map((gpsPoint) => ([gpsPoint.location.latitude, gpsPoint.location.longitude]))} />
 
-        {/* {path.map((marker, key) => (
-          <Marker key={key} position={[marker.location.latitude, marker.location.longitude]}>
-          </Marker>
-        ))}  */}
+        {waypoints !== undefined && waypoints.map((waypoint, index) => (
+          <WaypointMarker key={waypoint.reference} waypoint={waypoint} updateWaypoint={updateWaypoint} index={index}/>
+        ))}
 
+        {waypoints !== undefined && (
+          <Polyline pathOptions={{color: 'gray', dashArray: '5, 10'}} positions={[getLatestPosition(), ...waypoints.filter((waypoint) => !waypoint.passed).map((waypoint) => new LatLng(waypoint.location.latitude, waypoint.location.longitude))]} />
+        )}
+
+        <DragDetection stopFollowing={() => setFollowMe(false)}/>
       </MapContainer>
     </div>
   )

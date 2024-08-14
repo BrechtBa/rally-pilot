@@ -52,7 +52,7 @@ function DistanceRallyControls({rally, start, pause, clear, updateTotalDistance,
         <DateTimePicker label="Checkpoint time" value={checkpointDate} onChange={(newValue) => newValue!== null && checkpointDateChanged(newValue)} ampm={false}/>
       </div>
       <div style={{maxWidth: "8em"}}>
-        <TextField label="Total Distance" value={totalDistance} onChange={(e) => totalDistanceChanged(e.target.value)}></TextField>
+        <TextField label="Total Distance" value={totalDistance} onChange={(e) => totalDistanceChanged(e.target.value)} type="tel"></TextField>
       </div>
 
       <div>

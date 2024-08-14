@@ -1,6 +1,6 @@
 import { getLocation } from "@/useCases";
-import { Location } from "@/domain";
-import { Waypoint, WaypointRally } from "./domain";
+import { Location, Waypoint } from "@/domain";
+import { WaypointRally } from "./domain";
 
 export class WaypointRallyUseCases {
   intervals: Map<string, any>;
