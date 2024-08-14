@@ -1,4 +1,4 @@
-import { Location } from "@/domain";
+import { Location, BaseRally } from "@/domain";
 
 
 export class LocationUsecases {
@@ -75,33 +75,33 @@ export class LocationUsecases {
 export const locationUsecases = new LocationUsecases()
 
 
+export class BaseRallyUseCases {
+  private watchers: Map<string, any>;
 
-export function getLocation(successCallback: ({latitude, longitude, altitude}: Location) => void){
-  if (navigator.geolocation) {
-    const timeoutVal = 10 * 1000 * 1000; // set a timeout value for the query
-    navigator.geolocation.getCurrentPosition(
-      // what to do if query succeeds
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        const altitude = 0
-        successCallback({latitude: latitude, longitude: longitude, altitude: altitude});
-      },
-      (error) => {
-        // what to do if query fails:
-         const errors: {[key: number]: string} = {
-           1: 'Permission denied',
-           2: 'Position unavailable',
-           3: 'Request timeout'
-         };
-
-         console.log("Error: " + errors[error.code]); // print the error
-      },
-      // these 3 parameters are very important, especially the first one
-      { enableHighAccuracy: true, timeout: timeoutVal, maximumAge: 0 }
-    );
+  constructor() {
+    this.watchers = new Map([])
   }
-  else {
-    console.log("Geolocation is not supported by this browser");
+
+  updateCheckpointDate(rally: BaseRally, checkpointDate: Date): BaseRally {
+    rally.checkpointDate = checkpointDate;
+    return rally;
+  }
+
+
+  startUpdatingRally(rally: BaseRally, updateCallback: (rally: BaseRally) => void): void {
+    rally.updating = true;
+
+    const id = locationUsecases.watchLocation((location: Location): void => {
+      const now = new Date();
+      rally.path.addPoint({date: now, location: location});
+      rally.checkPassedWaypoints();
+      updateCallback(rally);
+    });
+    this.watchers.set(rally.reference, id)
+  }
+
+  stopUpdatingRally(rally: BaseRally): void {
+    rally.updating = false;
+    locationUsecases.clearWatchLocation(this.watchers.get(rally.reference));
   }
 }
-

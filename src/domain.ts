@@ -75,3 +75,79 @@ export class Path {
   }
 }
 
+
+export class BaseRally {
+  reference: string;
+  waypoints: Array<Waypoint>;  // km
+  checkpointDate: Date;
+  path: Path;
+  updating: boolean;
+
+  private static checkpointPassedDistance: number = 0.1; // km
+
+  constructor(reference: string, checkpointDate: Date, waypoints: Array<Waypoint>){
+    this.reference = reference;
+    this.checkpointDate = checkpointDate;
+    this.waypoints = waypoints;
+    this.updating = false;
+
+    this.path = new Path([]);
+  }
+
+  calculateRemainingDistance(): number {
+    // subclass
+    return 0;
+  }
+
+  calculateRequiredAverageVelocity() : number {
+    const now = new Date();
+    const remainingTime: number = (this.checkpointDate.getTime() - now.getTime()) / 1000 / 3600;  // h
+    if(remainingTime <= 0) {
+      return 0; 
+    }
+    
+    const remainingDistance: number = this.calculateRemainingDistance();  // km
+    return remainingDistance / remainingTime; // km/h
+  }
+
+  calulatePathDistance(): number {
+    return this.path.calculatePathDistance();
+  }
+
+  calculatePathAverageVelocity() : number {
+    if(this.path.gpsPoints.length <= 1) {
+      return 0;
+    }
+
+    const now = new Date();
+    const pathTime: number = (now.getTime() - this.path.gpsPoints[0].date.getTime()) / 1000 / 3600;  // h
+
+    const pathDistance: number = this.calulatePathDistance();  // km
+
+    const velocity = pathDistance / pathTime; // km/h
+    if (velocity < 0) {
+      return 0;
+    }
+    return velocity
+  }
+
+  checkPassedWaypoints() {
+    if(this.path.gpsPoints.length === 0){
+      return;
+    }
+
+    this.waypoints.forEach((waypoint) => {
+      if(waypoint.passed){
+        return;
+      }
+
+      const loc = this.path.gpsPoints[this.path.gpsPoints.length-1].location;
+      const distance = calculateDistance(loc.latitude, loc.longitude, loc.altitude, 
+        waypoint.location.latitude, waypoint.location.longitude, waypoint.location.altitude);
+
+      if(distance < BaseRally.checkpointPassedDistance){
+        waypoint.passed = true;
+      }
+    });
+  }
+}

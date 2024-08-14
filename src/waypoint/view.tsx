@@ -7,7 +7,6 @@ import { DateTimePicker } from "@mui/x-date-pickers";
 import AddIcon from '@mui/icons-material/Add';
 
 import MyMap from "@/components/Map";
-import Metric from "@/components/Metric";
 import { Dashboard } from "@/components/Dashboard";
 import useNoSleep from "@/components/NoSleep";
 
@@ -221,12 +220,10 @@ export default function WaypointRallyView(){
   }
 
   return (
-    <Dashboard map={<MyMap path={rally.path.gpsPoints} waypoints={rally.waypoints} updateWaypoints={updateWaypoints}></MyMap>} metrics={[
-      <Metric value={rally.calulatePathDistance().toFixed(1)} title="Traveled distance" unit="km" />,
-      <Metric value={rally.calculateRemainingDistance().toFixed(1)} title="Remaining distance" unit="km" />,
-      <Metric value={rally.calculatePathAverageVelocity().toFixed(0)} title="Average speed" unit="km/h" />,
-      <Metric value={rally.calculateRequiredAverageVelocity().toFixed(0)} title="Required speed" unit="km/h" />,
-    ]} controls={<WaypointRallyControls rally={rally} start={start} pause={pause} clear={clear} updateWaypoints={updateWaypoints} updateCheckpointDate={updateCheckpointDate} addWaypoint={addWaypoint}/>}/>
+    <Dashboard 
+      rally={rally}  
+      map={<MyMap path={rally.path.gpsPoints} waypoints={rally.waypoints} updateWaypoints={updateWaypoints}></MyMap>} 
+      controls={<WaypointRallyControls rally={rally} start={start} pause={pause} clear={clear} updateCheckpointDate={updateCheckpointDate} updateWaypoints={updateWaypoints} addWaypoint={addWaypoint}/>}/>
   )
 
 }

@@ -1,7 +1,18 @@
 import { ReactNode } from "react";
 
+import Metric from "./Metric";
 
-export function Dashboard({map, metrics, controls}: {map: ReactNode, metrics: Array<ReactNode>, controls: ReactNode}) {
+import { BaseRally } from "@/domain";
+
+
+export function Dashboard({rally, map, controls}: {rally: BaseRally, map: ReactNode, controls: ReactNode}) {
+
+  const metrics: Array<ReactNode> = [
+    <Metric value={rally.calulatePathDistance().toFixed(1)} title="Traveled distance" unit="km" />,
+    <Metric value={rally.calculateRemainingDistance().toFixed(1)} title="Remaining distance" unit="km" />,
+    <Metric value={rally.calculatePathAverageVelocity().toFixed(0)} title="Average speed" unit="km/h" />,
+    <Metric value={rally.calculateRequiredAverageVelocity().toFixed(0)} title="Required speed" unit="km/h" />,
+  ];
 
   return (
     <div style={{display: "flex", flexDirection: "column", width: "100%", height: "100%"}}>

@@ -6,7 +6,6 @@ import { Button, TextField } from "@mui/material";
 import { DateTimePicker } from "@mui/x-date-pickers";
 
 import MyMap from "@/components/Map";
-import Metric from "@/components/Metric";
 import { Dashboard } from "@/components/Dashboard";
 import useNoSleep from "@/components/NoSleep";
 
@@ -110,12 +109,10 @@ export default function DistanceRallyView(){
   }
 
   return (
-    <Dashboard map={<MyMap path={rally.path.gpsPoints}></MyMap>} metrics={[
-      <Metric value={rally.calulatePathDistance().toFixed(1)} title="Traveled distance" unit="km" />,
-      <Metric value={rally.calculateRemainingDistance().toFixed(1)} title="Remaining distance" unit="km" />,
-      <Metric value={rally.calculatePathAverageVelocity().toFixed(0)} title="Average speed" unit="km/h" />,
-      <Metric value={rally.calculateRequiredAverageVelocity().toFixed(0)} title="Required speed" unit="km/h" />,
-    ]} controls={<DistanceRallyControls rally={rally} start={start} pause={pause} clear={clear} updateTotalDistance={updateTotalDistance}  updateCheckpointDate={updateCheckpointDate}/>}/>
+    <Dashboard 
+      rally={rally} 
+      map={<MyMap path={rally.path.gpsPoints}></MyMap>} 
+      controls={<DistanceRallyControls rally={rally} start={start} pause={pause} clear={clear} updateCheckpointDate={updateCheckpointDate} updateTotalDistance={updateTotalDistance}/>}/>
   )
 
 }
