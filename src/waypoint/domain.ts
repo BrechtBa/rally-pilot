@@ -2,7 +2,8 @@ import { Path, Location, calculateDistance, calculatePathDistance } from "@/doma
 
 
 export interface Waypoint {
-  location: Location
+  reference: string;
+  location: Location;
   passed: boolean;
 }
 

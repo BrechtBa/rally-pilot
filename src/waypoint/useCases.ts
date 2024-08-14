@@ -1,4 +1,4 @@
-import getLocation from "@/useCases";
+import { getLocation } from "@/useCases";
 import { Location } from "@/domain";
 import { Waypoint, WaypointRally } from "./domain";
 
@@ -21,8 +21,12 @@ export class WaypointRallyUseCases {
     return rally;
   }
 
-  addWaypoint(rally: WaypointRally, waypoint: Waypoint): WaypointRally {
-    rally.waypoints.push(waypoint);
+  addWaypoint(rally: WaypointRally, location: Location, passed?: boolean): WaypointRally {
+    rally.waypoints.push({
+      reference: crypto.randomUUID(),
+      location: location,
+      passed: passed === undefined ? false : passed,
+    });
     return rally;
   }
 

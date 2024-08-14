@@ -12,6 +12,7 @@ import useNoSleep from "@/components/NoSleep";
 
 import { DistanceRally } from "./domain";
 import { distanceRallyUseCases } from "./factory";
+import { Link } from "react-router-dom";
 
 
 //create your forceUpdate hook
@@ -26,9 +27,9 @@ const getDefaultCheckpointDate = () => new Date(new Date().getTime() + 2*3600*10
 
 
 function DistanceRallyControls({rally, start, pause, clear, updateTotalDistance, updateCheckpointDate}: 
-                               {rally: DistanceRally, start: () => void, pause: () => void, clear: (totalDistance: number, checkpointDate: Date) => void, updateTotalDistance: (distance: number) => void, updateCheckpointDate: (date: Date) => void }){
+                               {rally: DistanceRally, start: () => void, pause: () => void, clear: (checkpointDate: Date, totalDistance: number) => void, updateTotalDistance: (distance: number) => void, updateCheckpointDate: (date: Date) => void }){
 
-  const [totalDistance, setTotalDistance] = useState<string>(getDefaultTotalDistance().toFixed(0));
+  const [totalDistance, setTotalDistance] = useState<string>(getDefaultTotalDistance().toString());
   const [checkpointDate, setCheckpointDate] = useState<dayjs.Dayjs>(dayjs(getDefaultCheckpointDate()));
 
   const totalDistanceChanged = (value: string) => {
@@ -62,7 +63,11 @@ function DistanceRallyControls({rally, start, pause, clear, updateTotalDistance,
         {!rally.updating && (
           <Button onClick={() => start()}>start</Button>
         )}
-        <Button onClick={() => clear(parseInt(totalDistance), checkpointDate.toDate())}>clear</Button>
+        <Button onClick={() => clear(checkpointDate.toDate(), parseInt(totalDistance))}>clear</Button>
+        
+        <Link to="/">
+          <Button>close</Button>
+        </Link>
 
       </div>
       
@@ -89,7 +94,7 @@ export default function DistanceRallyView(){
     forceUpdate();
   }
 
-  const clear = (totalDistance: number, checkpointDate: Date) => {
+  const clear = (checkpointDate: Date, totalDistance: number) => {
     const newRally = distanceRallyUseCases.createNew(checkpointDate, totalDistance);
     setRally(newRally);
   }
