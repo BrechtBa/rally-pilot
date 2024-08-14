@@ -11,11 +11,12 @@ import Metric from "@/components/Metric";
 import { Dashboard } from "@/components/Dashboard";
 import useNoSleep from "@/components/NoSleep";
 
-import { Location, Waypoint } from "@/domain";
+import { Waypoint } from "@/domain";
 import { WaypointRally } from "./domain";
 import { waypointRallyUseCases } from "./factory";
 import { Link } from "react-router-dom";
 import { DragIndicator } from "@mui/icons-material";
+import { locationUsecases } from "@/useCases";
 
 
 //create your forceUpdate hook
@@ -90,7 +91,7 @@ function WaypointControl({oldWaypoint, updateWaypoint}: {oldWaypoint: Waypoint, 
 
 
 function WaypointsControl({oldWaypoints, updateWaypoints, addWaypoint}: 
-                          {oldWaypoints: Array<Waypoint>, updateWaypoints: (waypoints: Array<Waypoint>) => void, addWaypoint: (location: Location) => void}) {
+                          {oldWaypoints: Array<Waypoint>, updateWaypoints: (waypoints: Array<Waypoint>) => void, addWaypoint: () => void}) {
 
   const updateWaypoint = (waypoint: Waypoint): void => {
     const newWaypoints = oldWaypoints.map((oldWaypoint) => {
@@ -102,7 +103,6 @@ function WaypointsControl({oldWaypoints, updateWaypoints, addWaypoint}:
     updateWaypoints(newWaypoints);
   }
 
-
   return (
     <div>
       <div>
@@ -111,7 +111,7 @@ function WaypointsControl({oldWaypoints, updateWaypoints, addWaypoint}:
         ))}
       </div>
 
-      <IconButton aria-label="add" onClick={() => addWaypoint({latitude: 50, longitude: 5, altitude: 0})} >
+      <IconButton aria-label="add" onClick={() => addWaypoint()} >
         <AddIcon />
       </IconButton>
 
@@ -123,7 +123,7 @@ function WaypointsControl({oldWaypoints, updateWaypoints, addWaypoint}:
 function WaypointRallyControls({rally, start, pause, clear, updateWaypoints, updateCheckpointDate, addWaypoint}: 
                                {rally: WaypointRally, start: () => void, pause: () => void, clear: (checkpointDate: Date) => void, 
                                 updateWaypoints: (waypoints: Array<Waypoint>) => void, updateCheckpointDate: (date: Date) => void, 
-                                addWaypoint: (location: Location) => void}){
+                                addWaypoint: () => void}){
 
 
   const [checkpointDate, setCheckpointDate] = useState<dayjs.Dayjs>(dayjs(getDefaultCheckpointDate()));
@@ -215,8 +215,8 @@ export default function WaypointRallyView(){
     forceUpdate();
   }
 
-  const addWaypoint = (location: Location) => {
-    waypointRallyUseCases.addWaypoint(rally, location, false);
+  const addWaypoint = () => {
+    waypointRallyUseCases.addWaypoint(rally, locationUsecases.getLastKnownLocation(), false);
     forceUpdate();
   }
 

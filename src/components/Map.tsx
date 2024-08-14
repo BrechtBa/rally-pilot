@@ -9,6 +9,7 @@ import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility
 
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 import { Waypoint, GPSPoint } from '@/domain';
+import { locationUsecases } from '@/useCases';
 
 
 function WaypointMarker({waypoint, updateWaypoint, index}: {waypoint: Waypoint, updateWaypoint: (waypoint: Waypoint) => void, index: number}) {
@@ -78,13 +79,15 @@ export default function MyMap({path, waypoints, updateWaypoints}: {path: Array<G
     updateWaypoints(newWaypoints);
   }
 
-
   const getLatestPosition = (): LatLng => {
-    if(path.length === 0){
-      return new LatLng(50, 5);
-    }
-    const loc = path[path.length-1].location;
-    return new LatLng(loc.latitude, loc.longitude);
+    const location = locationUsecases.getLastKnownLocation()
+    return new LatLng(location.latitude, location.longitude);
+
+    // if(path.length === 0){
+    //   return new LatLng(50, 5);
+    // }
+    // const loc = path[path.length-1].location;
+    // return new LatLng(loc.latitude, loc.longitude);
   }
 
   const flyToMyPosition = () => {
@@ -110,7 +113,7 @@ export default function MyMap({path, waypoints, updateWaypoints}: {path: Array<G
 
         <div className="leaflet-top leaflet-right">
           <div className="leaflet-control leaflet-bar">
-            <button onClick={() => flyToMyPosition()} style={{padding: "0.25rem", display: "inline-flex", border: "none", cursor: "pointer"}}>
+            <button onClick={() => {setFollowMe(true); flyToMyPosition();}} style={{padding: "0.25rem", display: "inline-flex", border: "none", cursor: "pointer"}}>
               <MyLocationIcon />
             </button>
           </div>

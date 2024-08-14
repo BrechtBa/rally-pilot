@@ -1,10 +1,10 @@
-import { getLocation } from "@/useCases";
+import { locationUsecases } from "@/useCases";
 import { Location, Waypoint } from "@/domain";
 import { WaypointRally } from "./domain";
 
+
 export class WaypointRallyUseCases {
   intervals: Map<string, any>;
-  static updateInterval: number = 5000;
 
   constructor() {
     this.intervals = new Map([])
@@ -16,28 +16,18 @@ export class WaypointRallyUseCases {
     return new WaypointRally(reference, [], checkpointDate);
   }
 
-  updateWaypoints(rally: WaypointRally, waypoints: Array<Waypoint>): WaypointRally {
-    rally.waypoints = waypoints;
-    return rally;
-  }
-
-  addWaypoint(rally: WaypointRally, location: Location, passed?: boolean): WaypointRally {
+  addWaypoint(rally: WaypointRally, location?: Location, passed?: boolean): WaypointRally {
     rally.waypoints.push({
       reference: crypto.randomUUID(),
-      location: location,
+      location: location == undefined ? locationUsecases.getLastKnownLocation() : location,
       passed: passed === undefined ? false : passed,
     });
     return rally;
   }
 
-  moveWaypoint(waypoint: Waypoint, location: Location): Waypoint {
-    waypoint.location = location;
-    return waypoint;
-  }
-
-  editWaypointPassed(waypoint: Waypoint, passed: boolean): Waypoint{
-    waypoint.passed = passed;
-    return waypoint
+  updateWaypoints(rally: WaypointRally, waypoints: Array<Waypoint>): WaypointRally {
+    rally.waypoints = waypoints;
+    return rally;
   }
 
   updateCheckpointDate(rally: WaypointRally, checkpointDate: Date): WaypointRally {
@@ -45,32 +35,21 @@ export class WaypointRallyUseCases {
     return rally;
   }
 
-  _updatePoint(rally: WaypointRally): void {
-    getLocation((location: Location): void => {
-      const now = new Date();
-      rally.path.addPoint({date: now, location: location});
-      rally.checkPassedWaypoints();
-    });
-    // TODO update in repo
-  }
-
   startUpdatingRally(rally: WaypointRally, updateCallback: (rally: WaypointRally) => void): void {
     rally.updating = true;
 
-    this._updatePoint(rally);
-    updateCallback(rally);
-
-    this.intervals.set(
-      rally.reference, setInterval(() => {
-        this._updatePoint(rally);
-        updateCallback(rally);
-      }, WaypointRallyUseCases.updateInterval)
-    );
+    const id = locationUsecases.watchLocation((location: Location): void => {
+      const now = new Date();
+      rally.path.addPoint({date: now, location: location});
+      rally.checkPassedWaypoints();
+      updateCallback(rally);
+    });
+    this.intervals.set(rally.reference, id)
   }
 
   stopUpdatingRally(rally: WaypointRally): void {
     rally.updating = false;
-    clearTimeout(this.intervals.get(rally.reference));
+    locationUsecases.clearWatchLocation(this.intervals.get(rally.reference));
   }
 
 }
