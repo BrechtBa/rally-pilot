@@ -20,7 +20,7 @@ function Layout() {
 
 function NavigationCard({title, description}: {title: string, description: string}) {
   return (
-    <Paper style={{padding: "1em", backgroundColor: "#ddd"}}>
+    <Paper style={{padding: "1em", backgroundColor: "rgb(101, 139, 176)", color: "#ffffff"}}>
         <h1>{title}</h1>
         <p>{description}</p>
     </Paper>
