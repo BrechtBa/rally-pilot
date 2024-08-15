@@ -83,7 +83,7 @@ export class BaseRally {
   path: Path;
   updating: boolean;
 
-  private static checkpointPassedDistance: number = 0.1; // km
+  private static checkpointPassedDistance: number = 0.05; // km
 
   constructor(reference: string, checkpointDate: Date, waypoints: Array<Waypoint>){
     this.reference = reference;
@@ -136,9 +136,9 @@ export class BaseRally {
       return;
     }
 
-    this.waypoints.forEach((waypoint) => {
+    this.waypoints.every((waypoint) => {
       if(waypoint.passed){
-        return;
+        return true;
       }
 
       const loc = this.path.gpsPoints[this.path.gpsPoints.length-1].location;
@@ -147,7 +147,9 @@ export class BaseRally {
 
       if(distance < BaseRally.checkpointPassedDistance){
         waypoint.passed = true;
+        return true;
       }
+      return false;
     });
   }
 }
@@ -162,5 +164,6 @@ export interface StoredPathItem {
 export interface PathRepository {
   storePath(reference: string, path: Path): void;
   loadPath(reference: string): Path;
-  listPaths(): Array<StoredPathItem>
+  listPaths(): Array<StoredPathItem>;
+  deletePath(reference: string): void;
 }
