@@ -80,7 +80,7 @@ function WaypointControl({oldWaypoint, updateWaypoint, deleteWaypoint}:
   }
 
   return (
-    <div style={{display: "flex", gap: "0.2em", marginTop: "0.7em", transform: CSS.Transform.toString(transform), transition: transition}} ref={setNodeRef}>
+    <div style={{touchAction: "none", display: "flex", gap: "0.2em", marginTop: "0.7em", transform: CSS.Transform.toString(transform), transition: transition}} ref={setNodeRef}>
       <IconButton aria-label="drag" {...attributes} {...listeners}>
         <DragIndicator />
       </IconButton>
@@ -189,7 +189,7 @@ function WaypointRallyControls({rally, start, pause, clear, updateWaypoints, upd
       <Dialog open={waypointsDialogOpen} onClose={() => setWaypointsDialogOpen(false)} fullScreen>
         <div style={{padding: "0.5em", height: "100%", display: "flex", flexDirection: "column" }}>
           <h3 style={{marginTop: 0}}>Waypoints</h3>
-          <div style={{flexGrow: 1, overflowY: "scroll"}}>
+          <div style={{flexGrow: 1, overflowY: "scroll", overflowX: "hidden"}}>
             <WaypointsControl oldWaypoints={rally.waypoints} updateWaypoints={waypointsChanged} addWaypoint={addWaypoint} deleteWaypoint={deleteWaypoint}/>
           </div>
 
@@ -221,13 +221,15 @@ function WaypointRallyControls({rally, start, pause, clear, updateWaypoints, upd
       <Dialog open={loadWaypointsDialogOpen} onClose={() => setLoadWaypointsDialogOpen(false)} fullScreen>
         <div style={{padding: "0.5em", height: "100%", display: "flex", flexDirection: "column" }}>
           <h3 style={{marginTop: 0}}>Load waypoints</h3>
-      
-          {waypointRallyUseCases.listStoredWaypoints().map((reference) => (
-            <Item key={reference} onClick={() => {waypointRallyUseCases.loadWaypoints(rally, reference); setLoadWaypointsDialogOpen(false); setWaypointsDialogOpen(false); forceUpdate();}}>
-              {reference}
-            </Item>
-          ))}
-
+          
+          <div style={{flexGrow: 1}}>
+            {waypointRallyUseCases.listStoredWaypoints().map((reference) => (
+              <Item key={reference} onClick={() => {waypointRallyUseCases.loadWaypoints(rally, reference); setLoadWaypointsDialogOpen(false); setWaypointsDialogOpen(false); forceUpdate();}}>
+                {reference}
+              </Item>
+            ))}
+          </div>
+          
           <div style={{display: "flex", justifyContent: "flex-end"}}>
             <Button onClick={() => setLoadWaypointsDialogOpen(false)}>close</Button>
           </div>
