@@ -14,8 +14,11 @@ import { Waypoint } from "@/domain";
 import { WaypointRally } from "./domain";
 import { waypointRallyUseCases } from "./factory";
 import { Link } from "react-router-dom";
-import { DragIndicator } from "@mui/icons-material";
+import { Delete, DragIndicator } from "@mui/icons-material";
 import { locationUsecases } from "@/useCases";
+import { DndContext, DragEndEvent } from "@dnd-kit/core";
+import { arrayMove, SortableContext, useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 
 //create your forceUpdate hook
@@ -27,13 +30,16 @@ function useForceUpdate(){
 const getDefaultCheckpointDate = () => new Date(new Date().getTime() + 2*3600*1000);
 
 
-function WaypointControl({oldWaypoint, updateWaypoint}: {oldWaypoint: Waypoint, updateWaypoint: (waypoint: Waypoint) => void}){
+function WaypointControl({oldWaypoint, updateWaypoint, deleteWaypoint}: 
+                         {oldWaypoint: Waypoint, updateWaypoint: (waypoint: Waypoint) => void, deleteWaypoint: (reference: string) => void}){
 
   const [latitude, setLatitude] = useState<String>(oldWaypoint.location.latitude.toFixed(6));
   const [longitude, setLongitude] = useState<String>(oldWaypoint.location.longitude.toFixed(6));
   // const [altitude, setAltitude] = useState<String>(oldWaypoint.location.altitude.toString());
   const [passed, setPassed] = useState<boolean>(oldWaypoint.passed);
 
+  const {attributes, listeners, setNodeRef, transform, transition} = useSortable({id: oldWaypoint.reference})
+  
   const onLatitudeChange = (value: string) => {
     setLatitude(value);
     const floatValue = parseFloat(value);
@@ -73,8 +79,8 @@ function WaypointControl({oldWaypoint, updateWaypoint}: {oldWaypoint: Waypoint, 
   }
 
   return (
-    <div style={{display: "flex", gap: "0.2em", marginTop: "0.7em"}}>
-      <IconButton aria-label="drag">
+    <div style={{display: "flex", gap: "0.2em", marginTop: "0.7em", transform: CSS.Transform.toString(transform), transition: transition}} ref={setNodeRef}>
+      <IconButton aria-label="drag" {...attributes} {...listeners}>
         <DragIndicator />
       </IconButton>
       <TextField label="Latitude" value={latitude} onChange={(e) => onLatitudeChange(e.target.value)} type="tel" size="small" InputProps={{
@@ -84,13 +90,19 @@ function WaypointControl({oldWaypoint, updateWaypoint}: {oldWaypoint: Waypoint, 
           endAdornment: <InputAdornment position="end">°</InputAdornment>,
         }}></TextField>
       <Checkbox checked={passed} onChange={() => onPassedChange(!passed)}></Checkbox>
+      <IconButton aria-label="delete" onClick={() => deleteWaypoint(oldWaypoint.reference)}>
+        <Delete />
+      </IconButton>
     </div>
   )
 }
 
 
-function WaypointsControl({oldWaypoints, updateWaypoints, addWaypoint}: 
-                          {oldWaypoints: Array<Waypoint>, updateWaypoints: (waypoints: Array<Waypoint>) => void, addWaypoint: () => void}) {
+function WaypointsControl({oldWaypoints, updateWaypoints, addWaypoint, deleteWaypoint}: 
+                          {oldWaypoints: Array<Waypoint>, 
+                           updateWaypoints: (waypoints: Array<Waypoint>) => void, 
+                           addWaypoint: () => void, 
+                           deleteWaypoint: (reference: string) => void}) {
 
   const updateWaypoint = (waypoint: Waypoint): void => {
     const newWaypoints = oldWaypoints.map((oldWaypoint) => {
@@ -102,13 +114,33 @@ function WaypointsControl({oldWaypoints, updateWaypoints, addWaypoint}:
     updateWaypoints(newWaypoints);
   }
 
+  const sortableWaypoints = oldWaypoints.map((wp) => ({id: wp.reference, ...wp}));
+  const sortableWaypointIds = sortableWaypoints.map((wp) => wp.id);
+
+  const reorderWaypointsList = (e: DragEndEvent) => {
+    if(!e.over) {
+      return;
+    }
+    if(e.active.id !== e.over.id) {
+      const oldIndex = sortableWaypointIds.indexOf(e.active.id.toString());
+      const newIndex = sortableWaypointIds.indexOf(e.over!.id.toString());
+      const reorderedSortableWaypoints = arrayMove(sortableWaypoints, oldIndex, newIndex);
+      updateWaypoints(reorderedSortableWaypoints.map((wp) => ({reference: wp.reference, location: wp.location, passed: wp.passed})));
+    }
+  }
+
+
   return (
     <div>
-      <div>
-        {oldWaypoints.map((waypoint) => (
-          <WaypointControl key={waypoint.reference} oldWaypoint={waypoint} updateWaypoint={updateWaypoint}/>        
-        ))}
-      </div>
+      <DndContext onDragEnd={reorderWaypointsList}>
+        <SortableContext items={sortableWaypoints}>
+          <div>
+            {sortableWaypoints.map((waypoint) => (
+              <WaypointControl key={waypoint.reference} oldWaypoint={waypoint} updateWaypoint={updateWaypoint} deleteWaypoint={deleteWaypoint}/>        
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
 
       <IconButton aria-label="add" onClick={() => addWaypoint()} >
         <AddIcon />
@@ -119,10 +151,10 @@ function WaypointsControl({oldWaypoints, updateWaypoints, addWaypoint}:
 }
 
 
-function WaypointRallyControls({rally, start, pause, clear, updateWaypoints, updateCheckpointDate, addWaypoint}: 
+function WaypointRallyControls({rally, start, pause, clear, updateWaypoints, updateCheckpointDate, addWaypoint, deleteWaypoint}: 
                                {rally: WaypointRally, start: () => void, pause: () => void, clear: (checkpointDate: Date) => void, 
                                 updateWaypoints: (waypoints: Array<Waypoint>) => void, updateCheckpointDate: (date: Date) => void, 
-                                addWaypoint: () => void}){
+                                addWaypoint: () => void, deleteWaypoint: (reference: string) => void}){
 
 
   const [checkpointDate, setCheckpointDate] = useState<dayjs.Dayjs>(dayjs(getDefaultCheckpointDate()));
@@ -151,7 +183,7 @@ function WaypointRallyControls({rally, start, pause, clear, updateWaypoints, upd
         <div style={{padding: "0.5em", height: "100%", display: "flex", flexDirection: "column" }}>
           <h3 style={{marginTop: 0}}>Waypoints</h3>
           <div style={{flexGrow: 1, overflowY: "scroll"}}>
-            <WaypointsControl oldWaypoints={rally.waypoints} updateWaypoints={waypointsChanged} addWaypoint={addWaypoint}/>
+            <WaypointsControl oldWaypoints={rally.waypoints} updateWaypoints={waypointsChanged} addWaypoint={addWaypoint} deleteWaypoint={deleteWaypoint}/>
           </div>
           <div style={{display: "flex", justifyContent: "flex-end"}}>
             <Button onClick={() => setWaypointsDialogOpen(false)}>close</Button>
@@ -219,11 +251,16 @@ export default function WaypointRallyView(){
     forceUpdate();
   }
 
+  const deleteWaypoint = (reference: string) => {
+    waypointRallyUseCases.updateWaypoints(rally, rally.waypoints.filter((wp: Waypoint) => wp.reference != reference));
+    forceUpdate();
+  }
+
   return (
     <Dashboard 
       rally={rally}  
       map={<MyMap path={rally.path.gpsPoints} waypoints={rally.waypoints} updateWaypoints={updateWaypoints}></MyMap>} 
-      controls={<WaypointRallyControls rally={rally} start={start} pause={pause} clear={clear} updateCheckpointDate={updateCheckpointDate} updateWaypoints={updateWaypoints} addWaypoint={addWaypoint}/>}/>
+      controls={<WaypointRallyControls rally={rally} start={start} pause={pause} clear={clear} updateCheckpointDate={updateCheckpointDate} updateWaypoints={updateWaypoints} addWaypoint={addWaypoint} deleteWaypoint={deleteWaypoint}/>}/>
   )
 
 }
