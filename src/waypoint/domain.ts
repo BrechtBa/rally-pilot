@@ -1,4 +1,11 @@
-import { calculatePathDistance, Waypoint, BaseRally } from "@/domain";
+import { calculatePathDistance, Waypoint, BaseRally, Location } from "@/domain";
+
+
+export interface WaypointRepository {
+  storeWaypoints(reference: string, waypoints: Array<Location>): void;
+  loadWaypoints(reference: string): Array<Location>;
+  listStoredWaypoints(): Array<string>;
+}
 
 
 export class WaypointRally extends BaseRally {

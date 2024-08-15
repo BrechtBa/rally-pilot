@@ -19,12 +19,13 @@ import { locationUsecases } from "@/useCases";
 import { DndContext, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import Item from "@/components/Item";
 
 
 //create your forceUpdate hook
 function useForceUpdate(){
-  const [, setValue] = useState(0);
-  return () => setValue(value => value + 1); 
+  const [, setValue] = useState(false);
+  return () => setValue(value => !value); 
 }
 
 const getDefaultCheckpointDate = () => new Date(new Date().getTime() + 2*3600*1000);
@@ -151,14 +152,20 @@ function WaypointsControl({oldWaypoints, updateWaypoints, addWaypoint, deleteWay
 }
 
 
-function WaypointRallyControls({rally, start, pause, clear, updateWaypoints, updateCheckpointDate, addWaypoint, deleteWaypoint}: 
+function WaypointRallyControls({rally, start, pause, clear, updateWaypoints, updateCheckpointDate, addWaypoint, deleteWaypoint, forceUpdate}: 
                                {rally: WaypointRally, start: () => void, pause: () => void, clear: (checkpointDate: Date) => void, 
                                 updateWaypoints: (waypoints: Array<Waypoint>) => void, updateCheckpointDate: (date: Date) => void, 
-                                addWaypoint: () => void, deleteWaypoint: (reference: string) => void}){
+                                addWaypoint: () => void, deleteWaypoint: (reference: string) => void, forceUpdate: () => void}){
 
 
   const [checkpointDate, setCheckpointDate] = useState<dayjs.Dayjs>(dayjs(getDefaultCheckpointDate()));
   const [waypointsDialogOpen, setWaypointsDialogOpen] = useState<boolean>(false);
+  
+  const [storeWaypointsDialogOpen, setStoreWaypointsDialogOpen] = useState<boolean>(false);
+  const [storeWaypointsReference, setStoreWaypointsReference] = useState<string>("");
+ 
+  const [loadWaypointsDialogOpen, setLoadWaypointsDialogOpen] = useState<boolean>(false);
+
 
   const waypointsChanged = (waypoints: Array<Waypoint>) => {
     updateWaypoints(waypoints);
@@ -185,8 +192,44 @@ function WaypointRallyControls({rally, start, pause, clear, updateWaypoints, upd
           <div style={{flexGrow: 1, overflowY: "scroll"}}>
             <WaypointsControl oldWaypoints={rally.waypoints} updateWaypoints={waypointsChanged} addWaypoint={addWaypoint} deleteWaypoint={deleteWaypoint}/>
           </div>
+
           <div style={{display: "flex", justifyContent: "flex-end"}}>
+            <Button onClick={() => setStoreWaypointsDialogOpen(true)}>save</Button>
+            <Button onClick={() => setLoadWaypointsDialogOpen(true)}>load</Button>
             <Button onClick={() => setWaypointsDialogOpen(false)}>close</Button>
+          </div>
+
+        </div>
+      </Dialog>
+
+      <Dialog open={storeWaypointsDialogOpen} onClose={() => setStoreWaypointsDialogOpen(false)}>
+        <div style={{padding: "0.5em", height: "100%", display: "flex", flexDirection: "column" }}>
+          <h3 style={{marginTop: 0}}>Store Waypoints</h3>
+          
+          <div style={{flexGrow: 1}}>
+            <TextField label="name" value={storeWaypointsReference} onChange={(e) => setStoreWaypointsReference(e.target.value)}/>
+          </div>
+          
+          <div style={{display: "flex", justifyContent: "flex-end"}}>
+            <Button onClick={() => {waypointRallyUseCases.storeWaypoints(rally, storeWaypointsReference); setStoreWaypointsReference(""); setStoreWaypointsDialogOpen(false);}}>save</Button>
+            <Button onClick={() => {setStoreWaypointsReference(""); setStoreWaypointsDialogOpen(false)}}>close</Button>
+          </div>
+
+        </div>
+      </Dialog>
+
+      <Dialog open={loadWaypointsDialogOpen} onClose={() => setLoadWaypointsDialogOpen(false)} fullScreen>
+        <div style={{padding: "0.5em", height: "100%", display: "flex", flexDirection: "column" }}>
+          <h3 style={{marginTop: 0}}>Load waypoints</h3>
+      
+          {waypointRallyUseCases.listStoredWaypoints().map((reference) => (
+            <Item key={reference} onClick={() => {waypointRallyUseCases.loadWaypoints(rally, reference); setLoadWaypointsDialogOpen(false); setWaypointsDialogOpen(false); forceUpdate();}}>
+              {reference}
+            </Item>
+          ))}
+
+          <div style={{display: "flex", justifyContent: "flex-end"}}>
+            <Button onClick={() => setLoadWaypointsDialogOpen(false)}>close</Button>
           </div>
 
         </div>
@@ -260,7 +303,7 @@ export default function WaypointRallyView(){
     <Dashboard 
       rally={rally}  
       map={<MyMap path={rally.path.gpsPoints} waypoints={rally.waypoints} updateWaypoints={updateWaypoints}></MyMap>} 
-      controls={<WaypointRallyControls rally={rally} start={start} pause={pause} clear={clear} updateCheckpointDate={updateCheckpointDate} updateWaypoints={updateWaypoints} addWaypoint={addWaypoint} deleteWaypoint={deleteWaypoint}/>}/>
+      controls={<WaypointRallyControls rally={rally} start={start} pause={pause} clear={clear} updateCheckpointDate={updateCheckpointDate} updateWaypoints={updateWaypoints} addWaypoint={addWaypoint} deleteWaypoint={deleteWaypoint} forceUpdate={forceUpdate}/>}/>
   )
 
 }

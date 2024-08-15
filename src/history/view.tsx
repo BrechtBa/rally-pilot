@@ -8,6 +8,7 @@ import CsvDownloader from 'react-csv-downloader';
 import MyMap from "@/components/Map";
 import { historyUseCases } from "./factory";
 import { AugmentedGPSPoint } from "./useCases";
+import Item from "@/components/Item";
 
 
 function CsvPathExport({path}: {path: Array<AugmentedGPSPoint>}) {
@@ -73,9 +74,9 @@ function HistoryViewControls({path, setPath}: {path: Array<AugmentedGPSPoint>, s
           <h3 style={{marginTop: 0}}>History</h3>
           <div style={{flexGrow: 1, overflowY: "scroll"}}>
             {historyUseCases.listPaths().map(item => (
-              <div key={item.reference} onClick={() => {setPath(item.reference); setListDialogOpen(false);}}>
+              <Item key={item.reference} onClick={() => {setPath(item.reference); setListDialogOpen(false);}}>
                 {item.date.toISOString()}
-              </div>
+              </Item>
             ))} 
           </div>
           <div style={{display: "flex", justifyContent: "flex-end"}}>
