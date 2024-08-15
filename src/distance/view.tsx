@@ -32,12 +32,12 @@ function DistanceRallyControls({rally, start, pause, clear, updateTotalDistance,
   const [checkpointDate, setCheckpointDate] = useState<dayjs.Dayjs>(dayjs(getDefaultCheckpointDate()));
 
   const totalDistanceChanged = (value: string) => {
-    setTotalDistance(value);
-    const intValue = parseInt(value);
-    if(isNaN(intValue)){
+    setTotalDistance(value.replace(",", "."));
+    const floatValue = parseFloat(value.replace(",", "."));
+    if(isNaN(floatValue)){
       return
     }
-    updateTotalDistance(intValue);
+    updateTotalDistance(floatValue);
   }
 
   const checkpointDateChanged = (value: dayjs.Dayjs) => {

@@ -42,8 +42,8 @@ function WaypointControl({oldWaypoint, updateWaypoint, deleteWaypoint}:
   const {attributes, listeners, setNodeRef, transform, transition} = useSortable({id: oldWaypoint.reference})
   
   const onLatitudeChange = (value: string) => {
-    setLatitude(value);
-    const floatValue = parseFloat(value);
+    setLatitude(value.replace(",", "."));
+    const floatValue = parseFloat(value.replace(",", "."));
     if(isNaN(floatValue)){
       return
     }
@@ -56,8 +56,8 @@ function WaypointControl({oldWaypoint, updateWaypoint, deleteWaypoint}:
   }
 
   const onLongitudeChange = (value: string) => {
-    setLongitude(value);
-    const floatValue = parseFloat(value);
+    setLongitude(value.replace(",", "."));
+    const floatValue = parseFloat(value.replace(",", "."));
     if(isNaN(floatValue)){
       return
     }
