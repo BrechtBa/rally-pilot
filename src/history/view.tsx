@@ -114,8 +114,8 @@ export default function HistoryView() {
     }
     const relativeValues = path.map(point => (point.speed-minValue)/delta);
     
-    const cMin = 0;
-    const cMax = 150;
+    const cMin = 150;
+    const cMax = 0;
 
     return relativeValues.map(val => `rgb(${Math.round(cMin + val*(cMax - cMin)).toFixed(0)},${Math.round(cMin + val*(cMax - cMin)).toFixed(0)},255)`)
   }
