@@ -73,6 +73,27 @@ export class Path {
   addPoint(point: GPSPoint) {
     this.gpsPoints.push(point);
   }
+
+  calculateCumulativePathDistance(): Array<number> {
+    return this.gpsPoints.map((_, ind) => calculatePathDistance(this.gpsPoints.slice(0, ind+1).map(val => val.location)));
+  }
+
+  calculateSpeed(): Array<number> {
+    const times = this.gpsPoints.map((point) => (point.date.getTime() - this.gpsPoints[0].date.getTime()) / 1000);
+    const distances = this.calculateCumulativePathDistance()
+    const speeds = times.map((_, ind) => {
+      if(ind == 0) {
+        return 0
+      }
+      const dt = times[ind]-times[ind-1]
+      if( dt <= 0 ) {
+        return 0
+      }
+      return (distances[ind]-distances[ind-1]) / dt * 3600;
+    });
+    return speeds;
+  }
+
 }
 
 

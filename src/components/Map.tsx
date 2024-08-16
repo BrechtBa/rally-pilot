@@ -60,7 +60,7 @@ function DragDetection({stopFollowing}: {stopFollowing: () => void}) {
 }
 
 
-export default function MyMap({path, waypoints, updateWaypoints}: {path: Array<GPSPoint>, waypoints?: Array<Waypoint>, updateWaypoints?: (waypoints: Array<Waypoint>) => void}) {
+export default function MyMap({path, waypoints, updateWaypoints, pathColors}: {path: Array<GPSPoint>, waypoints?: Array<Waypoint>, updateWaypoints?: (waypoints: Array<Waypoint>) => void, pathColors?: Array<string>}) {
   const [map, setMap] = useState<Map | null>(null);
   const [followMe, setFollowMe] = useState<boolean>(true);
 
@@ -100,6 +100,19 @@ export default function MyMap({path, waypoints, updateWaypoints}: {path: Array<G
     flyToMyPosition();
   }
 
+  const makePathSections = (path: Array<GPSPoint>, pathColors: Array<string>) => {
+    const sec = path.slice(0, path.length-1).map(function(point, i) {
+      console.log(point)
+      return {
+        key: point.date.toISOString(),
+        positions: [new LatLng(point.location.latitude, point.location.longitude), new LatLng(path[i+1].location.latitude, path[i+1].location.longitude)],
+        color: pathColors[i+1]
+      }
+    });
+    console.log(sec);
+    return sec
+  }
+
 
   return (
     <div style={{width: "100%", height: "100%"}}>
@@ -119,7 +132,15 @@ export default function MyMap({path, waypoints, updateWaypoints}: {path: Array<G
           </div>
         </div>
 
-        <Polyline pathOptions={{color: 'blue'}} positions={path.map((gpsPoint) => ([gpsPoint.location.latitude, gpsPoint.location.longitude]))} />
+        {pathColors === undefined && (
+          <Polyline color="rgb(0,0,255)" positions={path.map((gpsPoint) => ([gpsPoint.location.latitude, gpsPoint.location.longitude]))}/>
+        )}
+
+        {pathColors !== undefined && (
+          makePathSections(path, pathColors).map(section => (
+            <Polyline key={section.key} color={section.color} positions={section.positions}/>
+          ))
+        )}
 
         {waypoints !== undefined && waypoints.map((waypoint, index) => (
           <WaypointMarker key={waypoint.reference} waypoint={waypoint} updateWaypoint={updateWaypoint} index={index}/>

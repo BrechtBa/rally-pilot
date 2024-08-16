@@ -101,17 +101,34 @@ export default function HistoryView() {
 
   const [path, setPath] = useState<Array<AugmentedGPSPoint>>([])
 
+  const getPathColors = (path: Array<AugmentedGPSPoint>): Array<string> => {
+    if(path.length === 0) {
+      return [];
+    }
+    const minValue = Math.min(...path.map(point => point.speed));
+    const maxValue = Math.max(...path.map(point => point.speed));
+    let delta = 1;
 
+    if(maxValue > minValue) {
+      delta = maxValue - minValue;
+    }
+    const relativeValues = path.map(point => (point.speed-minValue)/delta);
+    
+    const cMin = 0;
+    const cMax = 150;
+
+    return relativeValues.map(val => `rgb(${Math.round(cMin + val*(cMax - cMin)).toFixed(0)},${Math.round(cMin + val*(cMax - cMin)).toFixed(0)},255)`)
+  }
 
   return (
     <div style={{display: "flex", flexDirection: "column", width: "100%", height: "100%"}}>
 
     <div style={{width: "100%"}}>
-      <HistoryViewControls path={path} setPath={(reference) => setPath(historyUseCases.getPath(reference))}/>
+      <HistoryViewControls path={path} setPath={(reference) => setPath(historyUseCases.getPath(reference))} />
     </div>
 
     <div style={{flexGrow: 1, width: "100%"}}>
-      <MyMap path={path}></MyMap>
+      <MyMap path={path} pathColors={getPathColors(path)}></MyMap>
     </div>
 
     <div>
