@@ -9,6 +9,7 @@ import MyMap from "@/components/Map";
 import { historyUseCases } from "./factory";
 import { AugmentedGPSPoint } from "./useCases";
 import Item from "@/components/Item";
+import Chart from "@/components/Chart";
 
 
 function CsvPathExport({path}: {path: Array<AugmentedGPSPoint>}) {
@@ -105,7 +106,7 @@ export default function HistoryView() {
     if(path.length === 0) {
       return [];
     }
-    const minValue = Math.min(...path.map(point => point.speed));
+    const minValue = 0;
     const maxValue = Math.max(...path.map(point => point.speed));
     let delta = 1;
 
@@ -114,7 +115,7 @@ export default function HistoryView() {
     }
     const relativeValues = path.map(point => (point.speed-minValue)/delta);
     
-    const cMin = 150;
+    const cMin = 200;
     const cMax = 0;
 
     return relativeValues.map(val => `rgb(${Math.round(cMin + val*(cMax - cMin)).toFixed(0)},${Math.round(cMin + val*(cMax - cMin)).toFixed(0)},255)`)
@@ -123,19 +124,18 @@ export default function HistoryView() {
   return (
     <div style={{display: "flex", flexDirection: "column", width: "100%", height: "100%"}}>
 
-    <div style={{width: "100%"}}>
-      <HistoryViewControls path={path} setPath={(reference) => setPath(historyUseCases.getPath(reference))} />
+      <div style={{width: "100%"}}>
+        <HistoryViewControls path={path} setPath={(reference) => setPath(historyUseCases.getPath(reference))} />
+      </div>
+
+      <div style={{flexGrow: 1, width: "100%"}}>
+        <MyMap path={path} pathColors={getPathColors(path)}></MyMap>
+      </div>
+
+      <div style={{height: "20%"}}>
+        <Chart path={path}/>
+      </div>
     </div>
-
-    <div style={{flexGrow: 1, width: "100%"}}>
-      <MyMap path={path} pathColors={getPathColors(path)}></MyMap>
-    </div>
-
-    <div>
-
-
-    </div>
-  </div>
   )
 
 }

@@ -101,16 +101,13 @@ export default function MyMap({path, waypoints, updateWaypoints, pathColors}: {p
   }
 
   const makePathSections = (path: Array<GPSPoint>, pathColors: Array<string>) => {
-    const sec = path.slice(0, path.length-1).map(function(point, i) {
-      console.log(point)
+    return path.slice(0, path.length-1).map(function(point, i) {
       return {
         key: point.date.toISOString(),
         positions: [new LatLng(point.location.latitude, point.location.longitude), new LatLng(path[i+1].location.latitude, path[i+1].location.longitude)],
         color: pathColors[i+1]
       }
     });
-    console.log(sec);
-    return sec
   }
 
 
