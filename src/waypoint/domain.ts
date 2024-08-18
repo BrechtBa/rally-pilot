@@ -5,6 +5,7 @@ export interface WaypointRepository {
   storeWaypoints(reference: string, waypoints: Array<Location>): void;
   loadWaypoints(reference: string): Array<Location>;
   listStoredWaypoints(): Array<string>;
+  deleteStoredWaypoints(reference: string): void ;
 }
 
 

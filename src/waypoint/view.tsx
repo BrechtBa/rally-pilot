@@ -225,7 +225,12 @@ function WaypointRallyControls({rally, start, pause, clear, updateWaypoints, upd
           <div style={{flexGrow: 1}}>
             {waypointRallyUseCases.listStoredWaypoints().map((reference) => (
               <Item key={reference} onClick={() => {waypointRallyUseCases.loadWaypoints(rally, reference); setLoadWaypointsDialogOpen(false); setWaypointsDialogOpen(false); forceUpdate();}}>
-                {reference}
+                <div style={{display: "flex", flexDirection: "row"}}>
+                  <div style={{flexGrow: 1}}>{reference}</div>
+                  <IconButton aria-label="delete" onClick={(e) => {e.stopPropagation(); waypointRallyUseCases.deleteWaypoints(reference); forceUpdate();}}>
+                    <Delete />
+                  </IconButton>  
+                </div>
               </Item>
             ))}
           </div>

@@ -23,6 +23,9 @@ class WaypointLocalStorageRepository implements WaypointRepository {
     return Object.keys(localStorage).filter((key) => key.startsWith("waypoints-")).map((val) => val.slice(10));
   }
 
+  deleteStoredWaypoints(reference: string): void {
+    localStorage.removeItem(this.makeKey(reference));
+  }
 }
 
 

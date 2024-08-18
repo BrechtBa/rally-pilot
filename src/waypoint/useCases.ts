@@ -44,4 +44,8 @@ export class WaypointRallyUseCases extends BaseRallyUseCases {
     this.updateWaypoints(rally, locations.map((location) => ({reference: crypto.randomUUID(), location: location, passed: false})));
   }
 
+  deleteWaypoints(reference: string): void {
+    this.waypointRepository.deleteStoredWaypoints(reference);
+  }
+  
 }
