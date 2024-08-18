@@ -1,15 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-import { Button, Dialog } from "@mui/material";
+import { Button, Dialog, IconButton, TextField } from "@mui/material";
 
 import CsvDownloader from 'react-csv-downloader';
 
 import MyMap from "@/components/Map";
 import { historyUseCases } from "./factory";
-import { AugmentedGPSPoint } from "./useCases";
+import { AugmentedGPSPoint, HistoryData } from "./useCases";
 import Item from "@/components/Item";
 import Chart from "@/components/Chart";
+import { Delete } from "@mui/icons-material";
 
 
 function CsvPathExport({path}: {path: Array<AugmentedGPSPoint>}) {
@@ -57,16 +58,22 @@ function CsvPathExport({path}: {path: Array<AugmentedGPSPoint>}) {
 }
 
 
-function HistoryViewControls({path, setPath}: {path: Array<AugmentedGPSPoint>, setPath: (reference: string) => void}) {
+function HistoryViewControls({data, setData}: {data: HistoryData | null, setData: (reference: string) => void}) {
 
   const [listDialogOpen, setListDialogOpen] = useState<boolean>(false);
- 
+  const [title, setTitle] = useState("");
+
+  useEffect(() => {
+    if(data !== null){
+      setTitle(data.metaData.title);
+    }
+  }, [data])
+
+
   return (
     <div style={{display: "flex", gap: "0.5em", marginTop: "1em", marginBottom: "0.5em", width: "100%", justifyContent: "center", flexWrap: "wrap"}}>
-
-      <CsvPathExport path={path} />
-
-      <div style={{maxWidth: "8em"}}>
+ 
+      <div>
         <Button onClick={() => setListDialogOpen(true)}>list</Button>
       </div>
 
@@ -75,8 +82,16 @@ function HistoryViewControls({path, setPath}: {path: Array<AugmentedGPSPoint>, s
           <h3 style={{marginTop: 0}}>History</h3>
           <div style={{flexGrow: 1, overflowY: "scroll"}}>
             {historyUseCases.listPaths().map(item => (
-              <Item key={item.reference} onClick={() => {setPath(item.reference); setListDialogOpen(false);}}>
-                {item.date.toISOString()}
+              <Item key={item.reference} onClick={() => {setData(item.reference); setListDialogOpen(false);}}>
+                <div style={{display: "flex", flexDirection: "row"}}>
+                  <div style={{flexGrow: 1}}>
+                    <div>{item.date.toISOString()}</div>
+                    <div>{item.title}</div>
+                  </div>
+                  <IconButton aria-label="delete" onClick={() => historyUseCases.deletePath(item.reference)}>
+                    <Delete />
+                  </IconButton>
+                </div>
               </Item>
             ))} 
           </div>
@@ -91,16 +106,25 @@ function HistoryViewControls({path, setPath}: {path: Array<AugmentedGPSPoint>, s
         <Link to="/">
           <Button>close</Button>
         </Link>
-
       </div>
       
+      {data !== null && (
+        <TextField label="Title" size="small"  value={title} onChange={(e) => {setTitle(e.target.value); historyUseCases.updatePathTitle(data.reference, e.target.value)}}/>
+      )}
+
+      {data !== null && (
+        <CsvPathExport path={data === null ? [] : data.path} />
+      )}
+
     </div>
   )
 }
 
+
 export default function HistoryView() {
 
-  const [path, setPath] = useState<Array<AugmentedGPSPoint>>([])
+  const [data, setData] = useState<HistoryData | null>(null)
+  const path = data === null ? [] : data.path;
 
   const getPathColors = (path: Array<AugmentedGPSPoint>): Array<string> => {
     if(path.length === 0) {
@@ -125,7 +149,7 @@ export default function HistoryView() {
     <div style={{display: "flex", flexDirection: "column", width: "100%", height: "100%"}}>
 
       <div style={{width: "100%"}}>
-        <HistoryViewControls path={path} setPath={(reference) => setPath(historyUseCases.getPath(reference))} />
+        <HistoryViewControls data={data} setData={(reference) => setData(historyUseCases.getPath(reference))} />
       </div>
 
       <div style={{flexGrow: 1, width: "100%"}}>
@@ -133,7 +157,7 @@ export default function HistoryView() {
       </div>
 
       <div style={{height: "20%"}}>
-        <Chart path={path}/>
+        <Chart path={path }/>
       </div>
     </div>
   )

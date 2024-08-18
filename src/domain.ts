@@ -176,15 +176,19 @@ export class BaseRally {
 }
 
 
-export interface StoredPathItem {
+export interface StoredPathMetaData {
   reference: string;
   date: Date;
+  title: string;
 }
+
 
 
 export interface PathRepository {
   storePath(reference: string, path: Path): void;
+  storePathMetaData(reference: string, date: Date, title: string): void;
   loadPath(reference: string): Path;
-  listPaths(): Array<StoredPathItem>;
+  loadPathMetaData(reference: string): StoredPathMetaData;
+  listPaths(): Array<StoredPathMetaData>;
   deletePath(reference: string): void;
 }

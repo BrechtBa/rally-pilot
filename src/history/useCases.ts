@@ -1,4 +1,4 @@
-import { Path, PathRepository, StoredPathItem, Location, GPSPoint } from "@/domain";
+import { Path, PathRepository, StoredPathMetaData, Location, GPSPoint } from "@/domain";
 
 
 export interface AugmentedGPSPoint extends GPSPoint {
@@ -27,6 +27,14 @@ function calculateAugmentedGPSPointsFromPath(path: Path): Array<AugmentedGPSPoin
   }));
 }
 
+
+export interface HistoryData {
+  reference: string;
+  metaData: StoredPathMetaData;
+  path: Array<AugmentedGPSPoint>;
+}
+
+
 export class HistoryUseCases {
 
   pathRepository: PathRepository
@@ -35,11 +43,25 @@ export class HistoryUseCases {
     this.pathRepository = pathRepository
   }
 
-  listPaths(): Array<StoredPathItem> {
+  listPaths(): Array<StoredPathMetaData> {
     return this.pathRepository.listPaths()
   }
 
-  getPath(reference: string): Array<AugmentedGPSPoint> {
-    return calculateAugmentedGPSPointsFromPath(this.pathRepository.loadPath(reference))
+  getPath(reference: string): HistoryData {
+    return {
+      reference: reference,
+      metaData: this.pathRepository.loadPathMetaData(reference),
+      path: calculateAugmentedGPSPointsFromPath(this.pathRepository.loadPath(reference)),
+    }
+  }
+
+  deletePath(reference: string): void {
+    this.pathRepository.deletePath(reference);
+  }
+
+  updatePathTitle(reference: string, title: string): void {
+    let metaData = this.pathRepository.loadPathMetaData(reference);
+    console.log(metaData)
+    this.pathRepository.storePathMetaData(reference, metaData.date, title);
   }
 }
