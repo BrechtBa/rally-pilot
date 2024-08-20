@@ -10,7 +10,7 @@ import MyMap from "@/components/Map";
 import { Dashboard } from "@/components/Dashboard";
 import useNoSleep from "@/components/NoSleep";
 
-import { Waypoint } from "@/domain";
+import { Location, Waypoint } from "@/domain";
 import { WaypointRally } from "./domain";
 import { waypointRallyUseCases } from "./factory";
 import { Link } from "react-router-dom";
@@ -300,16 +300,22 @@ export default function WaypointRallyView(){
     waypointRallyUseCases.addWaypoint(rally, locationUsecases.getLastKnownLocation(), false);
     forceUpdate();
   }
+  
+  const addWaypointAtLocation = (location: Location) => {
+    waypointRallyUseCases.addIntermediateWaypoint(rally, location, false);
+    forceUpdate();
+  }
 
   const deleteWaypoint = (reference: string) => {
     waypointRallyUseCases.updateWaypoints(rally, rally.waypoints.filter((wp: Waypoint) => wp.reference != reference));
     forceUpdate();
   }
 
+
   return (
     <Dashboard 
       rally={rally}  
-      map={<MyMap path={rally.path.gpsPoints} waypoints={rally.waypoints} updateWaypoints={updateWaypoints}></MyMap>} 
+      map={<MyMap path={rally.path.gpsPoints} waypoints={rally.waypoints} updateWaypoints={updateWaypoints} addWaypoint={addWaypointAtLocation} deleteWaypoint={deleteWaypoint}></MyMap>} 
       controls={<WaypointRallyControls rally={rally} start={start} pause={pause} clear={clear} updateCheckpointDate={updateCheckpointDate} updateWaypoints={updateWaypoints} addWaypoint={addWaypoint} deleteWaypoint={deleteWaypoint} forceUpdate={forceUpdate}/>}/>
   )
 

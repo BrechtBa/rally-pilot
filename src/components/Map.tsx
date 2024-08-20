@@ -8,11 +8,13 @@ import "leaflet-defaulticon-compatibility"
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css"
 
 import MyLocationIcon from '@mui/icons-material/MyLocation';
-import { Waypoint, GPSPoint } from '@/domain';
+import { Waypoint, GPSPoint, Location } from '@/domain';
 import { locationUsecases } from '@/useCases';
+import { IconButton } from '@mui/material';
+import { Delete } from '@mui/icons-material';
 
 
-function WaypointMarker({waypoint, updateWaypoint, index}: {waypoint: Waypoint, updateWaypoint: (waypoint: Waypoint) => void, index: number}) {
+function WaypointMarker({waypoint, updateWaypoint, deleteWaypoint, index}: {waypoint: Waypoint, updateWaypoint: (waypoint: Waypoint) => void, deleteWaypoint: (reference: string) => void, index: number}) {
 
   const markerRef = useRef<LeafletMarker>(null)
 
@@ -45,6 +47,9 @@ function WaypointMarker({waypoint, updateWaypoint, index}: {waypoint: Waypoint, 
       ref={markerRef}>
       <Popup minWidth={90}>
         <span>Waypoint {index + 1}{waypoint.passed ? ", passed" : ""}</span>
+        <IconButton aria-label="delete" onClick={() => deleteWaypoint(waypoint.reference)}>
+          <Delete />
+        </IconButton>  
       </Popup>
     </Marker>
   )
@@ -59,11 +64,24 @@ function DragDetection({stopFollowing}: {stopFollowing: () => void}) {
   return null;
 }
 
+function AddWaypoint({addWaypoint}: {addWaypoint(location: Location): void}) {
+  useMapEvents({
+    contextmenu: (e) => {
+      const location = {
+        latitude: e.latlng.lat,
+        longitude: e.latlng.lng,
+        altitude: e.latlng.alt !== undefined ? e.latlng.alt : 0
+      }
+      addWaypoint(location)
+    }
+  })
+  return null;
+}
 
-export default function MyMap({path, waypoints, updateWaypoints, pathColors}: {path: Array<GPSPoint>, waypoints?: Array<Waypoint>, updateWaypoints?: (waypoints: Array<Waypoint>) => void, pathColors?: Array<string>}) {
+
+export default function MyMap({path, waypoints, updateWaypoints, addWaypoint, deleteWaypoint, pathColors}: {path: Array<GPSPoint>, waypoints?: Array<Waypoint>, updateWaypoints?: (waypoints: Array<Waypoint>) => void, addWaypoint?: (location: Location) => void, deleteWaypoint?: (reference: string) => void, pathColors?: Array<string>}) {
   const [map, setMap] = useState<Map | null>(null);
   const [followMe, setFollowMe] = useState<boolean>(true);
-
 
   const updateWaypoint = (waypoint: Waypoint): void => {
     if(waypoints === undefined || updateWaypoints === undefined) {
@@ -77,6 +95,13 @@ export default function MyMap({path, waypoints, updateWaypoints, pathColors}: {p
       return oldWaypoint;
     });
     updateWaypoints(newWaypoints);
+  }
+
+  const deleteWaypointLocal = (reference: string): void => {
+    if(waypoints === undefined || deleteWaypoint === undefined) {
+      return;
+    }
+    deleteWaypoint(reference);
   }
 
   const getLatestPosition = (): LatLng => {
@@ -140,14 +165,19 @@ export default function MyMap({path, waypoints, updateWaypoints, pathColors}: {p
         )}
 
         {waypoints !== undefined && waypoints.map((waypoint, index) => (
-          <WaypointMarker key={waypoint.reference} waypoint={waypoint} updateWaypoint={updateWaypoint} index={index}/>
+          <WaypointMarker key={waypoint.reference} waypoint={waypoint} updateWaypoint={updateWaypoint} deleteWaypoint={deleteWaypointLocal} index={index}/>
         ))}
 
         {waypoints !== undefined && (
           <Polyline pathOptions={{color: 'gray', dashArray: '5, 10'}} positions={[getLatestPosition(), ...waypoints.filter((waypoint) => !waypoint.passed).map((waypoint) => new LatLng(waypoint.location.latitude, waypoint.location.longitude))]} />
         )}
 
+        {addWaypoint !== undefined && (
+          <AddWaypoint addWaypoint={addWaypoint}/>
+        )}
+
         <DragDetection stopFollowing={() => setFollowMe(false)}/>
+
       </MapContainer>
     </div>
   )
